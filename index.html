@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#212020">
+  <title>Document Registry</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <main id="login-screen" class="login-shell">
+    <section class="login-card">
+      <div class="brand-mark">DR</div>
+      <p class="eyebrow">DOCUMENT CONTROL</p>
+      <h1>Document Registry</h1>
+      <p class="muted">Sign in to manage your organisation's document records.</p>
+      <form id="login-form">
+        <label>Email address<input id="login-email" type="email" autocomplete="username" required></label>
+        <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
+        <button class="button primary full" type="submit">Sign in</button>
+      </form>
+      <div class="or"><span>or</span></div>
+      <a id="okta-login" class="button secondary full" href="#">Sign in with Okta</a>
+      <p class="tiny muted">Access is restricted to authorised accounts.</p>
+    </section>
+  </main>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><div class="brand-mark small">DR</div><div><strong>Document Registry</strong><small>DOCUMENT CONTROL</small></div></div>
+      <nav>
+        <button class="nav-item active" data-view="overview"><span>▦</span> Overview</button>
+        <button class="nav-item" data-view="documents"><span>▤</span> Documents</button>
+        <button class="nav-item" data-view="groups"><span>▣</span> Groups</button>
+        <div class="nav-label admin-only">ADMINISTRATION</div>
+        <button class="nav-item admin-only" data-view="users"><span>♙</span> Users</button>
+        <button class="nav-item admin-only" data-view="audit"><span>≡</span> Audit log</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-mini"><div class="avatar" id="user-avatar">U</div><div class="user-mini-text"><strong id="sidebar-user">User</strong><small id="sidebar-role">Viewer</small></div></div>
+        <button id="logout-button" class="button ghost full">Sign out</button>
+      </div>
+    </aside>
+
+    <section class="main-area">
+      <header class="topbar">
+        <div><span class="eyebrow">DOCUMENT MANAGEMENT</span><h2 id="page-title">Overview</h2></div>
+        <div class="topbar-actions"><span class="status-dot"></span><span class="muted small-text">System online</span><button id="account-button" class="avatar clickable">U</button></div>
+      </header>
+      <div class="content">
+        <section id="view-overview" class="view">
+          <div class="welcome-row"><div><h3>Good to see you.</h3><p class="muted">Here is the current status of your document registry.</p></div><button class="button primary editor-only" id="quick-register">＋ Register document</button></div>
+          <div class="stats-grid">
+            <article class="stat-card"><span>Total documents</span><strong id="stat-documents">—</strong><small>Registered records</small></article>
+            <article class="stat-card"><span>Active groups</span><strong id="stat-groups">—</strong><small>Document categories</small></article>
+            <article class="stat-card admin-only"><span>Active users</span><strong id="stat-users">—</strong><small>Authorised accounts</small></article>
+            <article class="stat-card"><span>Archived records</span><strong id="stat-archived">—</strong><small>Retained history</small></article>
+          </div>
+          <div class="panel">
+            <div class="panel-heading"><div><h3>Recent registrations</h3><p class="muted">The latest documents added to the registry.</p></div><button class="button text-button" data-goto="documents">View all →</button></div>
+            <div id="recent-documents" class="table-wrap"></div>
+          </div>
+        </section>
+
+        <section id="view-documents" class="view hidden">
+          <div class="section-actions"><div><h3>Documents</h3><p class="muted">Search and manage registered document records.</p></div><button class="button primary editor-only" id="new-document">＋ Register document</button></div>
+          <div class="toolbar"><input id="document-search" class="search-input" placeholder="Search ID, document name, author or notes…"><select id="document-group-filter"><option value="">All groups</option></select><select id="document-status-filter"><option value="active">Active</option><option value="archived">Archived</option><option value="all">All records</option></select></div>
+          <div class="panel"><div id="documents-table" class="table-wrap"></div></div>
+        </section>
+
+        <section id="view-groups" class="view hidden">
+          <div class="section-actions"><div><h3>Document groups</h3><p class="muted">Organise records into departments, subjects or document series.</p></div><button class="button primary admin-only" id="new-group">＋ Create group</button></div>
+          <div id="groups-grid" class="groups-grid"></div>
+        </section>
+
+        <section id="view-users" class="view hidden">
+          <div class="section-actions"><div><h3>User administration</h3><p class="muted">Manage access to the registry.</p></div><button class="button primary admin-only" id="new-user">＋ Create user</button></div>
+          <div class="panel"><div id="users-table" class="table-wrap"></div></div>
+        </section>
+
+        <section id="view-audit" class="view hidden">
+          <div class="section-actions"><div><h3>Audit log</h3><p class="muted">A chronological record of important system actions.</p></div></div>
+          <div class="panel"><div id="audit-table" class="table-wrap"></div></div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="document-dialog" class="modal">
+    <form id="document-form" method="dialog">
+      <div class="modal-heading"><div><span class="eyebrow">DOCUMENT RECORD</span><h3 id="document-modal-title">Register document</h3></div><button type="button" class="icon-button" data-close="document-dialog">×</button></div>
+      <input type="hidden" id="document-id">
+      <label>Document name<input id="document-name" maxlength="240" required placeholder="Enter document title"></label>
+      <label>Author<input id="document-author" maxlength="160" required placeholder="Person or department"></label>
+      <label>Group<select id="document-group" required></select></label>
+      <label>Notes<textarea id="document-notes" maxlength="5000" rows="4" placeholder="Optional notes or description"></textarea></label>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="document-dialog">Cancel</button><button class="button primary" type="submit">Save document</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="group-dialog" class="modal">
+    <form id="group-form" method="dialog">
+      <div class="modal-heading"><div><span class="eyebrow">GROUP MANAGEMENT</span><h3 id="group-modal-title">Create group</h3></div><button type="button" class="icon-button" data-close="group-dialog">×</button></div>
+      <input type="hidden" id="group-id">
+      <label>Group name<input id="group-name" maxlength="100" required></label>
+      <label>Description<textarea id="group-description" maxlength="500" rows="3"></textarea></label>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="group-dialog">Cancel</button><button class="button primary" type="submit">Save group</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="user-dialog" class="modal">
+    <form id="user-form" method="dialog">
+      <div class="modal-heading"><div><span class="eyebrow">USER ADMINISTRATION</span><h3>Create user</h3></div><button type="button" class="icon-button" data-close="user-dialog">×</button></div>
+      <label>Email address<input id="new-user-email" type="email" required maxlength="254"></label>
+      <label>Display name<input id="new-user-name" required maxlength="120"></label>
+      <label>Temporary password<input id="new-user-password" type="password" required minlength="12" autocomplete="new-password"></label>
+      <label>Role<select id="new-user-role"><option value="viewer">Viewer</option><option value="editor">Editor</option><option value="admin">Admin</option></select></label>
+      <p class="tiny muted">Share the temporary password securely. The user should change it after signing in.</p>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="user-dialog">Cancel</button><button class="button primary" type="submit">Create account</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detail-dialog" class="modal wide-modal">
+    <div id="detail-content"></div>
+  </dialog>
+
+  <dialog id="password-dialog" class="modal">
+    <form id="password-form" method="dialog">
+      <div class="modal-heading"><div><span class="eyebrow">ACCOUNT SECURITY</span><h3>Change password</h3></div><button type="button" class="icon-button" data-close="password-dialog">×</button></div>
+      <label>Current password<input id="current-password" type="password" required></label>
+      <label>New password<input id="next-password" type="password" minlength="12" required></label>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="password-dialog">Cancel</button><button class="button primary" type="submit">Update password</button></div>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
